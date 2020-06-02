@@ -174,10 +174,10 @@ class StackedHourGlass(nn.Module):
 		self.numReductions = numReductions
 		self.nJoints = nJoints
 
-		self.start = BnReluConv(1, 64, kernelSize = 7, stride = 1, padding = 3)
+		self.start = BnReluConv(1, 64, kernelSize = 7, stride = 2, padding = 3)
 
 		self.res1 = Residual(64, 128)
-		# self.mp = nn.MaxPool2d(2, 2)
+		self.mp = nn.MaxPool2d(2, 2)
 		self.res2 = Residual(128, 128)
 		self.res3 = Residual(128, self.nChannels)
 
@@ -205,7 +205,7 @@ class StackedHourGlass(nn.Module):
 	def forward(self, x):
 		x = self.start(x)
 		x = self.res1(x)
-		# x = self.mp(x)
+		x = self.mp(x)
 		x = self.res2(x)
 		x = self.res3(x)
 		out = []
@@ -228,18 +228,10 @@ input(bachsize, channels, w, h)
 output[stack](bachsize, joints, w, h)
 '''
 
-# import numpy as np
+if __name__ == '__main__':
+    model= StackedHourGlass(256, 2, 2, 3, 5)
+    print(model)
 
-# if __name__ == "__main__":
-#     Net = StackedHourGlass(64, 1, 2, 2, 3)
-#     Net = Net.double()
-
-
-#     x  = np.random.randn(1, 1, 256, 256)
-#     xt = torch.from_numpy(x)
-#     xt = xt.clone().detach()
-
-#     y = Net(xt)
-#     y = np.array(y)
-#     print(y.shape)
-#     print(y[0].shape)
+    data = torch.randn(3,1,480,320)
+    out = model(data)
+    print(out[1].shape)

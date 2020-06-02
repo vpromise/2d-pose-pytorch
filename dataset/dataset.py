@@ -75,11 +75,12 @@ class CAREN(data.Dataset):
         data = Image.open(img_path)
         data = self.transforms(data)
 
-        lab = np.array(np.load(lab_path)).reshape(-1,2)
-        y, x = lab[:,0].reshape(-1,1),lab[:,1].reshape(-1,1)
+        lab = np.array(np.load(lab_path)).reshape(-1, 2)
+        y, x = lab[:, 0].reshape(-1, 1), lab[:, 1].reshape(-1, 1)
         x = (x - 120)/4
 
-        # edit joint location to satisfied img crop 
+        # edit joint location to satisfied img crop
+        # 0, 1, 2 for left, mid, right view
         if lab_path[-10:-9] == '0':
             y = (y - 20)/4
         elif lab_path[-10:-9] == '2':
