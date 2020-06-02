@@ -4,7 +4,8 @@
 
 Project by vpromise
 Intelligent Healthcare Lab of UESTC
-Created on 11 26 2019
+Created on 11/26/2019
+Update on 02/06/2020
 
 @author: vpromise
 @mail : vpromisever@gmail.com
@@ -12,7 +13,6 @@ Created on 11 26 2019
 """
 
 import os
-
 import numpy as np
 import torch
 from PIL import Image
@@ -26,33 +26,31 @@ class CAREN(data.Dataset):
         '''
         Get images, divide into train/val set
         '''
+
         self.train = train
         self.data_root = root
         self._read_txt_file()
 
         if transforms is None:
-            # normalize = T.Normalize(mean=[0.485, 0.456, 0.406],
-            #                         std=[0.229, 0.224, 0.225])
+
+            # for caren gray img, mean = 0.2017, std = 0.0817
+            normalize = T.Normalize(mean=[0.2017],
+                                    std=[0.0817])
 
             if not train:
                 self.transforms = T.Compose([
-                    T.Resize((256, 256)),
                     T.ToTensor(),
-                    # normalize
+                    normalize
                 ])
             else:
                 self.transforms = T.Compose([
-                    T.Resize((256, 256)),
                     T.ToTensor(),
-                    # normalize
+                    normalize
                 ])
 
     def _read_txt_file(self):
-        '''
-        Get images and heatmap path
-        '''
         self.image_path = []
-        self.heatmap_path = []
+        self.label_path = []
 
         if self.train:
             txt_file = self.data_root + "train.txt"
@@ -64,18 +62,32 @@ class CAREN(data.Dataset):
             for line in lines:
                 item = line.strip().split(',')
                 self.image_path.append(item[0])
-                self.heatmap_path.append(item[1])
+                self.label_path.append(item[1])
 
     def __getitem__(self, index):
         '''
-        Return the data and heatmap label of one image 
+        return the data of one image [1,h,w]
+        return the label of joints for generating heatmap
+        label [jointss,2] --> hm [joint, h/4, w/4] 
         '''
         img_path = self.image_path[index]
-        hm_path = self.heatmap_path[index]
+        lab_path = self.label_path[index]
         data = Image.open(img_path)
         data = self.transforms(data)
-        label = np.array(np.load(hm_path))
-        
+
+        lab = np.array(np.load(lab_path)).reshape(-1,2)
+        y, x = lab[:,0].reshape(-1,1),lab[:,1].reshape(-1,1)
+        x = (x - 120)/4
+
+        # edit joint location to satisfied img crop 
+        if lab_path[-10:-9] == '0':
+            y = (y - 20)/4
+        elif lab_path[-10:-9] == '2':
+            y = (y - 110)/4
+        elif lab_path[-10:-9] == '1':
+            # x = (x - 120)/4
+            y = (y - 110)/4
+        label = np.hstack((x, y))
         return data, label
 
     def __len__(self):
