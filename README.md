@@ -1,10 +1,12 @@
 # pose-caren.pytorch
 
-human pose estimation in pytorch on CAREN datasets
+Pytorch code for human pose estimation, especially for CAREN dataset.
 
 ## support networks:
 
+- DeepPose
 - PoseAttention
+- PoseRes
 - PyraNet
 - StackedHourGlass
 
@@ -20,12 +22,14 @@ CAREN Dataset
 
 ## Traing
 
-`tensorboard --logdir=runs` 打开 `tensorboard` 面板,即可可视化训练过程
+1. edit `pathgen.py`, change data_path to "/your/data/path/" and run `python pathgen.py`
 
-`python train.py` 即可
+2. run `tensorboard --logdir=runs` in terminal, open `tensorboard` for training visualization.
+
+3. run `python train.py` start traing. 
 
 ## Test
 
-`params.ckpt = './models/ckpt_epoch_100.pth'` # 修改保存模型路径
+1. `params.ckpt = './models/ckpt_epoch_100.pth'` 
 
-`python test.py`
+2. `python test.py`
