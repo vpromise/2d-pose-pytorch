@@ -5,13 +5,14 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
 from dataset import CAREN
-from network import PoseAttention, PyraNet, StackedHourGlass
+from network import StackedHourGlass
+from network import SimplePoseRes
 from utils import Trainer
 
 # Hyper-params
-data_root = './dataset/128/'  # root for data path txt files
-model_path = './models/128_pyranet/'  # model save path
-batch_size = 2  # for train
+data_root = './dataset/refine/'  # root for data path txt files
+model_path = './models/res_refine/'  # model save path
+batch_size = 8  # for train 128-->8 256-->2
 batch_size_valid = 1  # for valid
 num_workers = 2
 
@@ -23,13 +24,15 @@ nesterov = True
 
 # Set Training parameters
 params = Trainer.TrainParams()
-params.max_epoch = 200
+params.max_epoch = 110
 params.criterion = nn.MSELoss()  # nn.CrossEntropyLoss()
-params.gpus = [0, 1] # examples: [0] [1] [0, 1]
+# set 'params.gpus=[]' to use CPU mode. examples: [0] [1] [0, 1]
+params.gpus = [0, 1]
 params.save_dir = model_path
 params.ckpt = None
-params.save_freq_epoch = 2
-params.start_save_epoch = 10
+params.hm_type = 3 # [static, stage, liner, exp] = [0, 1, 2, 3]
+params.save_freq_epoch = 1 # 2
+params.start_save_epoch = 1 # 10
 
 # load data
 print("Loading dataset...")
@@ -50,9 +53,8 @@ val_dataloader = DataLoader(
 print('val dataset len: {}'.format(len(val_dataloader.dataset)))
 
 # models
-# model = StackedHourGlass(256, 1, 2, 4, 3)
-model = PyraNet(nChannels=256, nStack=1, nModules=2, numReductions=4,
-                baseWidth=6, cardinality=30, nJoints=3, inputRes=256)
+# model = StackedHourGlass(256, 2, 2, 3, 5)
+model = SimplePoseRes()
 
 # optimizer
 trainable_vars = [param for param in model.parameters() if param.requires_grad]
@@ -64,6 +66,6 @@ params.optimizer = torch.optim.SGD(trainable_vars, lr=init_lr,
 
 # Train
 params.lr_scheduler = ReduceLROnPlateau(
-    params.optimizer, 'min', factor=lr_decay, patience=10, cooldown=10, verbose=True)
+    params.optimizer, 'min', factor=lr_decay, patience=0, cooldown=0, verbose=True)
 trainer = Trainer(model, params, train_dataloader, val_dataloader)
 trainer.train()

@@ -1,26 +1,25 @@
 from __future__ import print_function
 
 import os
+from PIL import Image
+from .log import logger
 
 import numpy as np
 import torch as t
+from torch.autograd import Variable
 import torch.nn.functional as F
 import torchvision.transforms.functional as tv_F
-from PIL import Image
-from torch.autograd import Variable
 from torchvision import transforms as T
-
-from .log import logger
 
 
 class TestParams(object):
     # params based on your local env
-    gpus = []  # default to use CPU mode
+    gpus = [1]  # default to use CPU mode
 
     # loading existing checkpoint
-    ckpt = './models/256/ckpt_epoch_120.pth'     # path to the ckpt file
+    ckpt = None     # path to the ckpt file
 
-    testdata_dir = './dataset/256/test.txt'
+    testdata_dir = None
 
 class Tester(object):
 
@@ -47,35 +46,44 @@ class Tester(object):
         self.model.eval()
 
 
-
     def test(self):
 
         image_path, heatmap_path = self._read_txt_file(self.params.testdata_dir)
 
         all_prediction = []
         for img_number in range(len(image_path)):
-            print('Processing image: ' + image_path[img_number])
+            if img_number % 500 == 0:
+                print('Processing image: ' + image_path[img_number])
 
             img = Image.open(image_path[img_number])
-            img = tv_F.to_tensor(tv_F.resize(img, (256, 256)))
+            img = tv_F.to_tensor(img)
+            # img = tv_F.to_tensor(tv_F.resize(img, (256, 256)))
             # img = tv_F.normalize(img, [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             img_input = Variable(t.unsqueeze(img, 0))
-            if len(self.params.gpus) > 0:
-                img_input = img_input.cuda()
+            with t.no_grad():
 
-            output = self.model(img_input)[0][0]
+                if len(self.params.gpus) > 0:
+                    img_input = img_input.cuda()
 
-            prediction = []
-            for k in range(3):
-                [prediction_x, prediction_y] = self._get_cord(output[k])
-                prediction_x = 1.25*prediction_x + 20
-                prediction_y = 1.25*prediction_y + 280
-
-                prediction.append([prediction_x, prediction_y])
-            # print("Prediction joints location is : ", prediction)
-            all_prediction.append(prediction)
-        # save predicted 2d joints location
-        np.save('./prediction_256.npy', all_prediction)
+                output = self.model(img_input)[1][0]
+                # output.resize_(5, 540, 320)
+                # print(output.size())
+                prediction = []
+                for k in range(output.size()[0]):
+                    [prediction_x, prediction_y] = self._get_cord(output[k])
+                    # prediction_x = prediction_x + 20
+                    # prediction_y = prediction_y + 280
+                    # left
+                    prediction_x = prediction_x * 4 + 1.5 + 20
+                    prediction_y = prediction_y * 4 + 1.5 + 120
+                    # right
+                    # prediction_x = prediction_x * 4 + 1.5 + 110
+                    # prediction_y = prediction_y * 4 + 1.5 + 120
+                    prediction.append([prediction_x, prediction_y])
+                # print("Prediction joints location is : ", prediction)
+                all_prediction.append(prediction)
+            # save predicted 2d joints location
+        np.save('./all_2d_left.npy', all_prediction)
     
     def _get_cord(self, heatmap):
         # assert heatmap.size() == (64,64)
