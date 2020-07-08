@@ -15,7 +15,7 @@ The Computer Assisted Rehabilitation ENvironment (CAREN) is a versatile, multi s
 - report.pdf
   - the report document.
 
-## support networks:
+## Support Networks:
 
 - DeepPose
 - PoseAttention
