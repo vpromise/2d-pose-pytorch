@@ -2,6 +2,19 @@
 
 Pytorch code for human pose estimation, especially for CAREN dataset.
 
+## What's CAREN
+The Computer Assisted Rehabilitation ENvironment (CAREN) is a versatile, multi sensory system for clinical analysis, rehabilitation, evaluation and registration of the human balance system. The use of virtual reality enables researchers to assess the subject’s behavior and includes sensory inputs like visual, auditory, vestibular and tactile.[see more.](https://www.motekforcelink.com/product/caren/)
+
+## CAREN Data
+- video
+  - videos captured the movement of subject(usually patients) from three different angles, 50fps.
+- csv
+  - contains 3d location information of 21 markers attached to the subject's joints, per 0.01 second.
+- c3d
+  - contains original 3d location information of markers and some annotations about the information of platform and camera.
+- report.pdf
+  - the report document.
+
 ## support networks:
 
 - DeepPose
