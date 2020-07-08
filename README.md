@@ -22,7 +22,7 @@ CAREN Dataset
 
 ## Traing
 
-1. edit `pathgen.py`, change data_path to "/your/data/path/" and run `python pathgen.py`
+1. edit `pathgen.py` in dataset folder, change data_path to "/your/data/path/" and run `python dataset/pathgen.py`
 
 2. run `tensorboard --logdir=runs` in terminal, open `tensorboard` for training visualization.
 
