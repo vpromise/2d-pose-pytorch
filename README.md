@@ -1,4 +1,4 @@
-# pose-caren.pytorch
+# 2d-pose-caren.pytorch
 
 Pytorch code for human pose estimation, especially for CAREN dataset.
 
